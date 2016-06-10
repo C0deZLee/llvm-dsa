@@ -12,10 +12,10 @@
 //===----------------------------------------------------------------------===//
 
 #include "SourceSinkAnalysis.h"
-#include "llvm/Function.h"
-#include "llvm/Module.h"
-#include "llvm/IntrinsicInst.h"
-#include "llvm/Support/InstIterator.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/IntrinsicInst.h"
+#include "llvm/IR/InstIterator.h"
 #include "llvm/Support/raw_ostream.h"
 #include <string>
 

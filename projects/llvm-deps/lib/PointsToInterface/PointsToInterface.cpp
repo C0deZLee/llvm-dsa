@@ -14,7 +14,7 @@
 #include "PointsToInterface.h"
 
 #include "dsa/DSGraphTraits.h"
-#include "llvm/Module.h"
+#include "llvm/IR/Module.h"
 #include "llvm/ADT/DepthFirstIterator.h"
 
 namespace deps {

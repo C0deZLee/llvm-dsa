@@ -16,7 +16,7 @@
 #include "Infoflow.h"
 #include "SignatureLibrary.h"
 
-#include "llvm/Module.h"
+#include "llvm/IR/Module.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/CommandLine.h"
 

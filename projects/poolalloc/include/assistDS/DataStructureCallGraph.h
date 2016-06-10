@@ -100,13 +100,15 @@ private:
   virtual void destroy() {
     // CallsExternalNode is not in the function map, delete it explicitly.
     if (CallsExternalNode) {
-      CallsExternalNode->allReferencesDropped();
+      // CHANGED
+      CallsExternalNode->removeAllCalledFunctions();
       delete CallsExternalNode;
       CallsExternalNode = 0;
     }
-    CallGraph::destroy();
+    // CHANGED
+    // CallGraph::destroy();
+    CallGraph::~CallGraph();
   }
-// CallGraph cg;
 };
 
 }

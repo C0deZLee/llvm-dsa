@@ -12,12 +12,15 @@
 //
 //===----------------------------------------------------------------------===//
 
+#ifndef DEBUG_TYPE
+#define DEBUG_TYPE "deps"
+
 #include "SignatureLibrary.h"
 #include "FlowRecord.h"
 
-#include "llvm/Function.h"
-#include "llvm/Instruction.h"
-#include "llvm/IntrinsicInst.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -135,3 +138,5 @@ OverflowChecks::process(const ContextID ctxt, const ImmutableCallSite cs) const 
 }
 
 }
+
+#endif

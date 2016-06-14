@@ -13,6 +13,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+//CHANGE
+#ifndef DEBUG_TYPE
+#define DEBUG_TYPE "deps"
+
 #include "Infoflow.h"
 #include "SignatureLibrary.h"
 
@@ -54,8 +58,9 @@ void
 Infoflow::doInitialization() {
   // Get the PointsToInterface
   pti = &getAnalysis<PointsToInterface>();
-  sourceSinkAnalysis = &getAnalysis<  >();
-
+  // CHANGE
+  sourceSinkAnalysis = &getAnalysis<SourceSinkAnalysis>();
+  // sourceSinkAnalysis = &getAnalysis<>();
   signatureRegistrar = new SignatureRegistrar();
   registerSignatures();
 }
@@ -68,7 +73,7 @@ Infoflow::doFinalization() {
 }
 
 void Infoflow::registerSignatures() {
-  RegisterSignature<OverflowChecks> OverflowC (*signatureRegistrar);
+  RegisterSignature<OverflowChecks> OverflowChecks (*signatureRegistrar);
   RegisterSignature<StdLib>         StdLib(*signatureRegistrar);
 
   // For now, if we don't know the call don't bother with this.
@@ -1408,3 +1413,4 @@ Infoflow::constrainIntrinsic(const IntrinsicInst & intr, Flows & flows) {
 }
 
 }
+#endif

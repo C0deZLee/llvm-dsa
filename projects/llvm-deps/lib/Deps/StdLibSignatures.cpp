@@ -19,8 +19,8 @@
 
 #include "FlowRecord.h"
 
-#include "llvm/Function.h"
-#include "llvm/Support/CallSite.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/CallSite.h"
 
 namespace deps {
 

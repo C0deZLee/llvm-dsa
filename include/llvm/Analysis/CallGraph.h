@@ -108,7 +108,7 @@ public:
 
   void print(raw_ostream &OS) const;
   void dump() const;
-
+  
   typedef FunctionMapTy::iterator iterator;
   typedef FunctionMapTy::const_iterator const_iterator;
 
@@ -156,6 +156,14 @@ public:
   /// \brief Similar to operator[], but this will insert a new CallGraphNode for
   /// \c F if one does not already exist.
   CallGraphNode *getOrInsertFunction(const Function *F);
+  
+  /// WARNING! TEMP CHANGE!
+  // ADD THE getRoot TO MAKE THE CODE COMPATIBLE
+  // getRoot - Return the root of the call graph, which is either main, or if
+  // main cannot be found, the external node.
+  //
+  CallGraphNode *getRoot()             { return Root; }
+  const CallGraphNode *getRoot() const { return Root; }
 };
 
 /// \brief A node in the call graph for a module.

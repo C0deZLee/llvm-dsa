@@ -1,4 +1,4 @@
-===- DataStructureCallGraph.cpp - Provide a CallGraph using DSA ---------===//
+//===- DataStructureCallGraph.cpp - Provide a CallGraph using DSA ---------===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -12,19 +12,19 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "assistDS/DataStructureCallGraph.h"
+#include "dsa/DataStructureCallGraph.h"
 #include "dsa/DSGraph.h"
 #include "dsa/DSNode.h"
 
 #include "llvm/ADT/SmallPtrSet.h"
-#include "llvm/Instructions.h"
-#include "llvm/IntrinsicInst.h"
-#include "llvm/Support/CallSite.h"
-#include "llvm/Support/InstIterator.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/IntrinsicInst.h"
+#include "llvm/IR/CallSite.h"
+#include "llvm/IR/InstIterator.h"
 
 using namespace llvm;
 
-char DataStructureCallGraph::ID;
+char DataStructureCallGraph::ID = 0;
 
 namespace {
 
@@ -36,7 +36,8 @@ RegisterAnalysisGroup<CallGraph> Y(X);
 }
 
 bool DataStructureCallGraph::runOnModule(Module &M) {
-  CallGraph::initialize(M);
+  // CHANGE
+  // CallGraph::initialize(M);
 
   ExternalCallingNode = getOrInsertFunction(0);
   CallsExternalNode = new CallGraphNode(0);

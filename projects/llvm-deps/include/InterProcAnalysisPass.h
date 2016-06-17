@@ -24,7 +24,8 @@
 #ifndef INTERPROC_ANALYSIS_PASS_H
 #define INTERPROC_ANALYSIS_PASS_H
 
-#include "assistDS/DataStructureCallGraph.h"
+// CHANGE
+// #include "assistDS/DataStructureCallGraph.h"
 
 #include "llvm/Pass.h"
 #include "llvm/IR/Module.h"
@@ -133,7 +134,9 @@ class InterProcAnalysisPass : public ModulePass {
 public:
   typedef AnalysisUnit<C> AUnitType;
   typedef typename std::set<AUnitType>::iterator AUnitIterator;
-
+  // CHANGE
+  Module *Mod;
+  
   explicit InterProcAnalysisPass(char &pid) : ModulePass(pid) {}
 
   /// bottomInput - This method should be implemented by the subclass as the
@@ -206,13 +209,16 @@ public:
   /// getAnalysisUsage - InterProcAnalysisPass requires and preserves the
   /// call graph. Derived methods must call this implementation.
   virtual void getAnalysisUsage(AnalysisUsage &Info) const {
-    Info.addRequired<DataStructureCallGraph>();
-    Info.addPreserved<DataStructureCallGraph>();
+    //CHANGE
+    //Info.addRequired<CallGraph>();
+    // Info.addPreserved<CallGraph>();
   }
 
   /// runOnModule - the work queue "driver". Continues analyzing
   /// AnalysisUnits until there is no more work to be done.
   bool runOnModule(Module &M) {
+    // CHANGE
+    Mod = &M;
     doInitialization();
 
     analyzedFunctions.clear();
@@ -239,12 +245,11 @@ public:
     doFinalization();
     return false;
   }
-
 private:
   typedef AnalysisRecord<I,O> ARecord;
   typedef typename std::map<AUnitType,ARecord>::iterator ARecordIterator;
   typedef typename std::map<AUnitType, std::set<AUnitType> >::iterator DependencyIterator;
-
+  
   InterProcWorkQueue<C> workQueue;
   std::map<AUnitType,ARecord> analysisRecords;
   /// For each analysis unit, we track the analysis units that requested
@@ -256,7 +261,7 @@ private:
 
   /// Adds entry points to the module to the work queue.
   void addStartItemsToWorkQueue() {
-    const CallGraph & cg = getAnalysis<DataStructureCallGraph>();
+    const CallGraph & cg = CallGraph(*Mod);
     const CallGraphNode *root = cg.getRoot();
     const Function *rootFun = root->getFunction();
 
@@ -288,7 +293,7 @@ private:
 
     // For each function in the module, check if it was analyzed already.
     // If it wasn't and it has code, add it to the workqueue
-    const CallGraph & cg = getAnalysis<DataStructureCallGraph>();
+    const CallGraph & cg = CallGraph(*Mod);
     Module & m = cg.getModule();
     for (Module::iterator fun = m.begin(), end = m.end(); fun != end; ++fun) {
       if (analyzedFunctions.find(fun) == analyzedFunctions.end()) {

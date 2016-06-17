@@ -41,7 +41,7 @@ class CallSensitiveAnalysisPass :
    public InterProcAnalysisPass<ContextID, I, O> {
 public:
   typedef AnalysisUnit<ContextID> AUnitType;
-
+  Module *Call_Mod = this->Mod;
   explicit CallSensitiveAnalysisPass(char &pid, bool collapseExtContext, bool collapseIndContext) :
     InterProcAnalysisPass<ContextID, I, O>(pid),
     collapseInd(collapseIndContext), collapseExt(collapseExtContext) { }
@@ -95,7 +95,9 @@ public:
     }
 
     // FIXME: Why does this need explicit instantiation?
-    const CallGraph & cg = this->template getAnalysis<DataStructureCallGraph>();
+    // CHANGE
+    // const CallGraph & cg = this->template CallGraph(*(this->Mod));
+    const CallGraph & cg = CallGraph(*(this->Mod));
     const CallGraphNode *caller = cg[cs.getCaller()];
 
     // Query the call graph for callees of the given call site.
@@ -199,7 +201,9 @@ public:
     std::set<std::pair<const Function *, const ContextID> > callees;
 
     // FIXME: Why does this need explicit instantiation?
-    const CallGraph & cg = this->template getAnalysis<DataStructureCallGraph>();
+    // CHANGE
+    //  const CallGraph & cg = this->template CallGraph(*(this->Mod));
+    const CallGraph & cg = CallGraph(*(this->Mod));
     const CallGraphNode *caller = cg[cs.getCaller()];
 
     // Query the call graph for callees of the given call site.
@@ -268,7 +272,9 @@ public:
       }
     } else {
       // FIXME: Why does this need explicit instantiation?
-      const CallGraph & cg = this->template getAnalysis<DataStructureCallGraph>();
+      // CHANGE
+      //  const CallGraph & cg = this->template CallGraph(*(this->Mod));
+      const CallGraph & cg = CallGraph(*(this->Mod));
       const CallGraphNode *caller = cg[cs.getCaller()];
       
       // Query the call graph for callees of the given call site.

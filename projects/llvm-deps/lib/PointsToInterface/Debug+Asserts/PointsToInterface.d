@@ -92,12 +92,6 @@
   /home/ubuntu/llvm-dsa/include/llvm/Config/AsmParsers.def \
   /home/ubuntu/llvm-dsa/include/llvm/Config/Disassemblers.def \
   /home/ubuntu/llvm-dsa/include/llvm/ADT/DenseSet.h \
-  /home/ubuntu/llvm-dsa/projects/poolalloc/include/assistDS/DSNodeEquivs.h \
-  /home/ubuntu/llvm-dsa/projects/poolalloc/include/dsa/DSGraph.h \
-  /home/ubuntu/llvm-dsa/projects/poolalloc/include/dsa/DSNode.h \
-  /home/ubuntu/llvm-dsa/include/llvm/Support/Debug.h \
-  /home/ubuntu/llvm-dsa/include/llvm/Support/raw_ostream.h \
-  /home/ubuntu/llvm-dsa/projects/poolalloc/include/dsa/DSSupport.h \
   /home/ubuntu/llvm-dsa/projects/poolalloc/include/dsa/DSGraphTraits.h \
   /home/ubuntu/llvm-dsa/include/llvm/ADT/GraphTraits.h \
   /home/ubuntu/llvm-dsa/include/llvm/ADT/STLExtras.h \
@@ -284,18 +278,6 @@
 /home/ubuntu/llvm-dsa/include/llvm/Config/Disassemblers.def:
 
 /home/ubuntu/llvm-dsa/include/llvm/ADT/DenseSet.h:
-
-/home/ubuntu/llvm-dsa/projects/poolalloc/include/assistDS/DSNodeEquivs.h:
-
-/home/ubuntu/llvm-dsa/projects/poolalloc/include/dsa/DSGraph.h:
-
-/home/ubuntu/llvm-dsa/projects/poolalloc/include/dsa/DSNode.h:
-
-/home/ubuntu/llvm-dsa/include/llvm/Support/Debug.h:
-
-/home/ubuntu/llvm-dsa/include/llvm/Support/raw_ostream.h:
-
-/home/ubuntu/llvm-dsa/projects/poolalloc/include/dsa/DSSupport.h:
 
 /home/ubuntu/llvm-dsa/projects/poolalloc/include/dsa/DSGraphTraits.h:
 

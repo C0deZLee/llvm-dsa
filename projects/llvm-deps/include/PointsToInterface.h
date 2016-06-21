@@ -16,7 +16,7 @@
 #define POINTSTOINTERFACE_H_
 
 #include "dsa/DataStructure.h"
-#include "assistDS/DSNodeEquivs.h"
+#include "dsa/DSNodeEquivs.h"
 
 #include "llvm/Pass.h"
 #include "llvm/IR/Value.h"

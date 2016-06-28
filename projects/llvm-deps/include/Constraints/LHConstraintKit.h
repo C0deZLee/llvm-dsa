@@ -63,6 +63,10 @@ public:
     /// Unconstrained variables will be "High" (caller delete)
     virtual ConsSoln *greatestSolution(const std::set<std::string> kinds);
 
+    const std::vector<const LHConsVar *>::iterator &LHConstraintKit::varsBegin() { return vars.begin(); }
+
+    const std::vector<const LHConsVar *>::iterator &LHConstraintKit::varsEnd() { return vars.end(); }
+
     // Compute both least and greatest solutions simultaneously
     // for the given kind.
     void solveMT(std::string kind);

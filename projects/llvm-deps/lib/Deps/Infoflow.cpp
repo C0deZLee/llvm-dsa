@@ -98,6 +98,9 @@ Infoflow::runOnContext(const Infoflow::AUnitType unit, const Unit input) {
   CM.getContextFor(unit.context()).dump();
   errs() << "]\n");
   generateFunctionConstraints(unit.function());
+  errs() << "Trying to print out kit->vars and kit->joins";
+  
+
   return Unit();
 }
 
@@ -119,7 +122,7 @@ Infoflow::constrainFlowRecord(const FlowRecord &record) {
 	       sinkSources.insert(&getOrCreateConsElem(record.sourceContext(), **source));
       }
     }
-    
+
     for (FlowRecord::fun_iterator source = record.source_varg_begin(), end = record.source_varg_end();
         source != end; ++source) {
       if (!DepsDropAtSink || !sourceSinkAnalysis->vargIsSink(**source)) {

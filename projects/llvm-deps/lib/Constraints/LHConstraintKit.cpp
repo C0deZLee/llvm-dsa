@@ -43,14 +43,6 @@ LHConstraintKit::~LHConstraintKit() {
       delete I->second;
 }
 
-const std::vector<const LHConsVar *>::iterator &LHConstraintKit::varsBegin() {
-  return vars.begin();
-}
-
-const std::vector<const LHConsVar *>::iterator &LHConstraintKit::varsEnd() {
-  return vars.end();
-}
-
 const ConsVar &LHConstraintKit::newVar(const std::string description) {
     LHConsVar *var = new LHConsVar(description);
     vars.push_back(var);

@@ -62,10 +62,9 @@ public:
     /// Find the gfp of the constraints in the "kinds" sets
     /// Unconstrained variables will be "High" (caller delete)
     virtual ConsSoln *greatestSolution(const std::set<std::string> kinds);
-
-    const std::vector<const LHConsVar *>::iterator &LHConstraintKit::varsBegin() { return vars.begin(); }
-
-    const std::vector<const LHConsVar *>::iterator &LHConstraintKit::varsEnd() { return vars.end(); }
+    
+    /// return the vars
+    std::vector<const LHConsVar *> getVars() {return vars;}
 
     // Compute both least and greatest solutions simultaneously
     // for the given kind.

@@ -98,8 +98,12 @@ Infoflow::runOnContext(const Infoflow::AUnitType unit, const Unit input) {
   CM.getContextFor(unit.context()).dump();
   errs() << "]\n");
   generateFunctionConstraints(unit.function());
-  errs() << "Trying to print out kit->vars and kit->joins";
-  
+  errs() << "Trying to print out kit->vars and kit->joins\n";
+  for (std::vector<const LHConsVar *>::iterator var = kit->vars.begin(), end = kit->vars.end();
+          var != end; ++var) {
+      errs() << var->getDesc() << "\n";
+  }
+
 
   return Unit();
 }

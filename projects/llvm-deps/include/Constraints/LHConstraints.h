@@ -70,6 +70,8 @@ public:
     static inline bool classof(const LHConsVar *) { return true; }
     static inline bool classof(const ConsVar *var) { return var->type() == DT_LHConsVar; }
     static inline bool classof(const ConsElem *elem) { return elem->type() == DT_LHConsVar; }
+
+    std::string getDesc() { return desc;}
 private:
     LHConsVar(const LHConsVar &);
     LHConsVar& operator=(const LHConsVar&);

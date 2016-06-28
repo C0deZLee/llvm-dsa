@@ -1,22 +1,27 @@
 #!/usr/bin/env bash
 # linking example
 
-# CPPFLAGS=
-# LLVMLIBS=
-# LDFLAGS=
-
+CPPFLAGS=
+LLVMLIBS=
+LDFLAGS=
+LEVEL="../../.."
 
 # if your instrumentation code calls into LLVM libraries, then comment out the above and use these instead:
-CPPFLAGS=`llvm-config --cppflags`
-LLVMLIBS=`llvm-config --libs`
-LDFLAGS=`llvm-config --ldflags`
+#CPPFLAGS=`llvm-config --cppflags`
+#LLVMLIBS=`llvm-config --libs`
+#LDFLAGS=`llvm-config --ldflags`
 
 ## compile the instrumentation module to bitcode
 ## clang $CPPFLAGS -O0 -emit-llvm -c sample.cpp -o sample.bc
-clang -O0 -emit-llvm -o test.bc -c test.c
+$LEVEL/Debug+Asserts/bin/clang -O0 -emit-llvm -o test.bc -c test.c
 
 ## opt -load *.so -infoflow < $BENCHMARKS/welcome/welcome.bc -o welcome.bc
-~/llvm-dsa/Debug+Asserts/bin/opt  -load ~/llvm-dsa/projects/poolalloc/Debug+Asserts/lib/LLVMDataStructure.so -load ~/llvm-dsa/projects/llvm-deps/Debug+Asserts/lib/Constraints.so  -load ~/llvm-dsa/projects/llvm-deps/Debug+Asserts/lib/sourcesinkanalysis.so -load ~/llvm-dsa/projects/llvm-deps/Debug+Asserts/lib/pointstointerface.so -load ~/llvm-dsa/projects/llvm-deps/Debug+Asserts/lib/Deps.so  -infoflow  -debug < ~/llvm-dsa/projects/llvm-deps/test/test.bc > /dev/null
+$LEVEL/Debug+Asserts/bin/opt  -load $LEVEL/projects/poolalloc/Debug+Asserts/lib/LLVMDataStructure.so \
+  -load $LEVEL/projects/llvm-deps/Debug+Asserts/lib/Constraints.so  \
+  -load $LEVEL/projects/llvm-deps/Debug+Asserts/lib/sourcesinkanalysis.so \
+  -load $LEVEL/projects/llvm-deps/Debug+Asserts/lib/pointstointerface.so \
+  -load $LEVEL/projects/llvm-deps/Debug+Asserts/lib/Deps.so  \
+  -infoflow  -debug < $LEVEL/projects/llvm-deps/test/test.bc > /dev/null
 
 ## link instrumentation module
 #llvm-link welcome.bc sample.bc -o welcome.linked.bc

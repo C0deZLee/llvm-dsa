@@ -23,9 +23,15 @@
 # Compiled files.
 *.d
 *.o
+*.a
+*.so
+*.bc
+*.out
 # Makefiles
 *.common
 *.cmake
+# Dic files
+.dir
 #==============================================================================#
 # Explicit files to ignore (only matches one).
 #==============================================================================#
@@ -43,6 +49,24 @@ cscope.out
 autoconf/aclocal.m4
 autoconf/autom4te.cache
 /compile_commands.json
+LLVMBuild.cmake
+Makefile.config
+Makefile.llvmbuild
+cmake/modules/LLVMConfig.cmake
+cmake/modules/LLVMExports.cmake
+config.log
+config.status
+docs/doxygen.cfg
+include/llvm/Config/config.h
+include/llvm/Config/llvm-config.h
+projects/llvm-deps/Makefile.common
+projects/llvm-deps/config.log
+projects/llvm-deps/config.status
+projects/poolalloc/Makefile.common
+projects/poolalloc/config.log
+projects/poolalloc/config.status
+tools/clang/docs/doxygen.cfg
+tools/clang/include/clang/Config/config.h
 
 #==============================================================================#
 # Directories to ignore (do not add trailing '/'s, they skip symlinks).

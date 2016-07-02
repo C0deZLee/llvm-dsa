@@ -28,7 +28,7 @@ char PrintBBLine::ID = 0;
 static RegisterPass<PrintBBLine> X("prtLnNum", "Print Line Number For Each BasicBlock Starts and Ends");
 
 bool PrintBBLine::runOnModule(Module &M) {
-	bool retval = initialize(M);
+	bool retval = false;
 
 	for (Module::iterator F = M.begin(), E = M.end(); F != E; F++) {
 		retval |= runOnFunction(*F, M);
@@ -50,10 +50,10 @@ bool PrintBBLine::runOnBasicBlock(BasicBlock &BB, Module &M) {
 	Constant *printLine = M.getOrInsertFunction("_Z9printLinei", FTy);
 
 	for (BasicBlock::iterator I = BB.begin(), E = BB.end(); I != E; I++) {
-		MDLocation *loc = I->getDebugInfo();
+		MDLocation *loc = I->getDebugLoc();
 		if (!loc) continue;
 		if (isa<PHINode>(*I)) I++;
-		ConstantInt *line = ConstantInt::get(M.getContext(), APInt(32, loc->getLine(), false);
+		ConstantInt *line = ConstantInt::get(M.getContext(), APInt(32, loc->getLine(), false));
 		IRBuilder<> builder(I);
 
 		builder.CreateCall(printLine, {line});

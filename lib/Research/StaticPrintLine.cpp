@@ -24,7 +24,7 @@ char StaticPrintBBLine::ID = 0;
 static RegisterPass<StaticPrintBBLine> X("sprtLnNum", "Print Line Number For Each BasicBlock Starts and Ends");
 
 bool StaticPrintBBLine::runOnModule(Module &M) {
-	bool retval = initialize(M);
+	bool retval = false;
 
 	for (Module::iterator F = M.begin(), E = M.end(); F != E; F++) {
 		retval |= runOnFunction(*F, M);

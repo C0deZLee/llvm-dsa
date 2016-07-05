@@ -10,5 +10,4 @@ $(OBJ): %.bc: %.cpp
 
 .PHONY: clean
 clean:
-	rm -f *.bc *.ll *.o *.exe
-
+	rm -f *.bc *.ll *.o *.x

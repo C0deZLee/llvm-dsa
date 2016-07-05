@@ -18,6 +18,14 @@ LDFLAGS=
 
 make -C $LLVMSRCLIB/Research
 
+if [ ! -d tmp ]; then
+	mkdir tmp
+	echo ".PHONY: clean all
+all:
+clean:
+	rm -f *.bc *.x *.ll *.o" > tmp/Makefile
+fi
+
 if [ $# -gt 0 ]; then
 	tst=$1
 	echo "Running Test: $tst"

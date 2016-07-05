@@ -26,11 +26,12 @@ clean:
 	rm -f *.bc *.x *.ll *.o" > tmp/Makefile
 fi
 
-if [ $# -gt 0 ]; then
-	tst=$1
-	echo "Running Test: $tst"
+if [ $# -gt 1 ]; then
+	tst=$2
+	opt=$1
+	echo "Running Test: $tst with opt options $opt"
 	cd $TMP
-	rm -f *
+	make clean
 
 	clang $CPPFLAGS -O0 -emit-llvm -c $BBInfo/printLine.cpp -o printLine.bc
 	llvm-dis printLine.bc
@@ -41,42 +42,48 @@ if [ $# -gt 0 ]; then
 		exit
 	fi
 
-	opt -load $LLVMLIB/Research.so -prtLnNum "$tst".bc -o "$tst".g.bc
+	opt -load $LLVMLIB/Research.so $opt "$tst".bc -o "$tst".g.bc
 	llvm-dis "$tst".g.bc
 	if [ $? -ne 0 ]; then
-		echo "opt failed"
+		echo "opt failed $?"
 		exit
 	fi
 
 	## link instrumentation module
 	llvm-link "$tst".g.bc printLine.bc -o "$tst".linked.bc
 	if [ $? -ne 0 ]; then
-		echo "link failed"
+		echo "link failed $?"
 		exit
 	fi
 
 	## compile to native object file
 	llc -filetype=obj "$tst".linked.bc -o "$tst".o
 	if [ $? -ne 0 ]; then
-		echo "llc failed"
+		echo "llc failed $?"
 		exit
 	fi
 
 	## generate native executable
-	echo "g++"
 	g++ "$tst".o $LLVMLIBS $LDFLAGS -o "$tst".x
 	if [ $? -ne 0 ]; then
-		echo "g++ failed"
+		echo "g++ failed $?"
 		exit
 	fi
 
-	echo "Running ./$tst"
-	./"$tst".x $2 $3 $4 $5 $6 $7
+	if [ $opt != "-sprtLnNum" ]; then
+		echo "Running ./$tst"
+		shift; shift # remove the first two arguments and pass the rest to the opt-ed program
+		./"$tst".x "$@"
+	fi
 
 	cd ..
 else
 	echo
-	echo "Usage: ./run.sh TEST ARGUMENTLIST"
-	echo "Usable TESTs: gcd welcome compression"
+	echo "Usage: ./run.sh \"<options>\" <TEST> (<ARGUMENTLIST>)"
+	echo "Usable options: "
+	echo "	-sprtLnNum		Statically print the filename and debuginfo for each BasicBlock entrance"
+	echo "	-prtLnNum		Dynamically print the filename and debuginfo for each BasicBlock entrance"
+	echo "Usable TESTs: "
+	echo "	gcd welcome compression"
 	echo
 fi

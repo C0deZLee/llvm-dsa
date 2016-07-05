@@ -6,6 +6,7 @@
 #include <llvm/IR/IRBuilder.h>
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugInfoMetadata.h"
+#include "llvm/IR/Metadata.h"
 
 using namespace llvm;
 
@@ -44,8 +45,10 @@ bool StaticPrintBBLine::runOnFunction(Function &F, Module &M) {
 bool StaticPrintBBLine::runOnBasicBlock(BasicBlock &BB, Module &M) {
 	for (BasicBlock::iterator I = BB.begin(), E = BB.end(); I != E; I++) {
 		if (isa<PHINode>(*I)) continue;
-		if (MDLocation *loc = I->getDebugLoc())
+		if (MDLocation *loc = I->getDebugLoc()) {
 			loc->dump();
+			errs() << loc->getFilename() << "\n";
+		}
 	}
 	return false;
 }

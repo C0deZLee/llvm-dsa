@@ -22,6 +22,8 @@ namespace {
 		virtual bool runOnFunction(Function &F, Module &M);
 		virtual bool runOnBasicBlock(BasicBlock &BB, Module &M);
 
+		Value *filename = NULL;
+
 	};
 }
 char PrintBBLine::ID = 0;
@@ -47,16 +49,17 @@ bool PrintBBLine::runOnFunction(Function &F, Module &M) {
 
 bool PrintBBLine::runOnBasicBlock(BasicBlock &BB, Module &M) {
 	FunctionType *FTy = FunctionType::get(Type::getVoidTy(M.getContext()), {Type::getInt32Ty(M.getContext())});
-	Constant *printLine = M.getOrInsertFunction("_Z9printLinei", FTy);
+	Constant *printLine = M.getOrInsertFunction("_Z12printBBEntryiPc", FTy);
 
 	for (BasicBlock::iterator I = BB.begin(), E = BB.end(); I != E; I++) {
 		MDLocation *loc = I->getDebugLoc();
 		if (!loc) continue;
 		if (isa<PHINode>(*I)) I++;
-		ConstantInt *line = ConstantInt::get(M.getContext(), APInt(32, loc->getLine(), false));
 		IRBuilder<> builder(I);
+		if (!filename) filename = builder.CreateGlobalStringPtr(loc->getFilename(), ".str");
+		ConstantInt *line = ConstantInt::get(M.getContext(), APInt(32, loc->getLine(), false));
 
-		builder.CreateCall(printLine, {line});
+		builder.CreateCall(printLine, {line, filename});
 		break;
 	}
 

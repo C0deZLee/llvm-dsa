@@ -63,14 +63,16 @@ public:
     /// Unconstrained variables will be "High" (caller delete)
     virtual ConsSoln *greatestSolution(const std::set<std::string> kinds);
     /// return the vars and joins
-    std::vector<const LHConsVar *> getVars() { return *vars; }
-    std::set<LHJoin> getJoins() { return *joins; }
+    std::vector<const LHConsVar *> getVars() { return vars; }
+    std::set<LHJoin> & getJoins() { return joins; }
 
     // Compute both least and greatest solutions simultaneously
     // for the given kind.
     void solveMT(std::string kind);
     // Solve the given kinds in parallel (per thread limit)
   std::vector<PartialSolution*> solveLeastMT(std::vector<std::string> kinds, bool useDefaultSinks);
+  std::vector<LHConstraint> &getOrCreateConstraintSet(const std::string kind);
+
 private:
     static LHConstraintKit *singleton;
     
@@ -87,7 +89,6 @@ private:
 
     void freeUnneededConstraints(std::string kind);
 
-    std::vector<LHConstraint> &getOrCreateConstraintSet(const std::string kind);
 };
 
 }

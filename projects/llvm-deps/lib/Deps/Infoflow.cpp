@@ -111,9 +111,9 @@ Infoflow::runOnContext(const Infoflow::AUnitType unit, const Unit input) {
   errs() << "----- Trying to print out kit->joins -----\n";
   std::set<LHJoin> joins = kit->getJoins();
   for (std::set<LHJoin>::iterator join = joins.begin(), end = joins.end();
-      joins != end; ++join) {
+      join != end; ++join) {
         errs() << "--- Elements of one join ---\n";
-        std::set<const ConsElem *> elems = (*join)->elements();
+        std::set<const ConsElem *> elems = (*join).elements();
         for(std::set<const ConsElem *>::iterator element = elems.begin(),
           end = elems.end(); element != end; ++element) {
           // errs() << (*element)-> << "\n";
@@ -123,23 +123,23 @@ Infoflow::runOnContext(const Infoflow::AUnitType unit, const Unit input) {
   errs() << "----- Trying to print out ConstraintSet -----\n";
   /// there are 4 types "kind": default, default-sinks, explicit, explicit-sinks
   /// try "default" first
-  std::vector<LHConstraint> &set = kit->getOrCreateConstraintSet("default");
+  std::vector<LHConstraint> set = kit->getOrCreateConstraintSet("default");
   /// set contains all constraints, constraints are pairs of ConsElem
   /// can't joint on rhs, only on lhs
-  for(std::set<LHJoin>::iterator constraint = set.begin(), end = set.end();
+  for(std::vector<LHConstraint>::iterator constraint = set.begin(), end = set.end();
       constraint != end; ++constraint) {
         /// a constraint contains two ConElem: lhs and rhs.
         /// We need to search through valueMap, locMap and vargMap to get the
         /// value paired to both ConElems.
 
         // first try lhs
-        DenseMap<const Value *, const ConsElem *>::iterator curValue = summarySinkValueConstraintMap.find(&((*constraint)->lhs)));
+        DenseMap<const Value *, const ConsElem *>::iterator curValue = summarySinkValueConstraintMap.find((*constraint).lhs());
         // not found in summarySinkValueConstraintMap
         if (curValue == summarySinkValueConstraintMap.end()) {
-          DenseMap<const AbstractLoc *, const ConsElem *>::iterator curLoc = locConstraintMap.find(&((*constraint)->lhs)));
+          DenseMap<const AbstractLoc *, const ConsElem *>::iterator curLoc = locConstraintMap.find((*constraint).lhs());
             // not found in locConstraintMap
             if(curLoc == locConstraintMap.end()) {
-              DenseMap<const Function *, const ConsElem *>::iterator curVarg = summarySinkVargConstraintMap.find(&((*constraint)->lhs)));
+              DenseMap<const Function *, const ConsElem *>::iterator curVarg = summarySinkVargConstraintMap.find((*constraint).lhs());
                 // not found in summarySinkVargConstraintMap
                 if(curVarg == summarySinkVargConstraintMap.end()) {
                   errs() << "A ConsElem is not in all maps. \n";
@@ -162,13 +162,13 @@ Infoflow::runOnContext(const Infoflow::AUnitType unit, const Unit input) {
         errs() << " --> "; //TODO: not sure the direction
 
         // then try thr rhs
-        DenseMap<const Value *, const ConsElem *>::iterator curValue = summarySinkValueConstraintMap.find(&((*constraint)->rhs)));
+        DenseMap<const Value *, const ConsElem *>::iterator curValue = summarySinkValueConstraintMap.find(&((*constraint).rhs));
         // not found in summarySinkValueConstraintMap
         if (curValue == summarySinkValueConstraintMap.end()) {
-          DenseMap<const AbstractLoc *, const ConsElem *>::iterator curLoc = locConstraintMap.find(&((*constraint)->rhs)));
+          DenseMap<const AbstractLoc *, const ConsElem *>::iterator curLoc = locConstraintMap.find(&((*constraint).rhs));
             // not found in locConstraintMap
             if(curLoc == locConstraintMap.end()) {
-              DenseMap<const Function *, const ConsElem *>::iterator curVarg = summarySinkVargConstraintMap.find(&((*constraint)->rhs)));
+              DenseMap<const Function *, const ConsElem *>::iterator curVarg = summarySinkVargConstraintMap.find(&((*constraint).rhs));
                 // not found in summarySinkVargConstraintMap
                 if(curVarg == summarySinkVargConstraintMap.end()) {
                   errs() << "A ConsElem is not in all maps. \n";

@@ -98,13 +98,109 @@ Infoflow::runOnContext(const Infoflow::AUnitType unit, const Unit input) {
   CM.getContextFor(unit.context()).dump();
   errs() << "]\n");
   generateFunctionConstraints(unit.function());
-  errs() << "Trying to print out kit->vars and kit->joins\n";
+
+  errs() << "----- Trying to print out kit->vars -----\n";
   std::vector<const LHConsVar *> vars = kit->getVars();
   for (std::vector<const LHConsVar *>::iterator var = vars.begin(), end = vars.end();
-          var != end; ++var) {
-      errs() << (*var)->getDesc() << "\n";
+    var != end; ++var) {
+      if((*var)->getDesc() != "")
+        errs() << (*var)->getDesc() << "\n";
   }
 
+  // kit->getOrCreateConstraintSet(kind)
+  errs() << "----- Trying to print out kit->joins -----\n";
+  std::set<LHJoin> joins = kit->getJoins();
+  for (std::set<LHJoin>::iterator join = joins.begin(), end = joins.end();
+      joins != end; ++join) {
+        errs() << "--- Elements of one join ---\n";
+        std::set<const ConsElem *> elems = (*join)->elements();
+        for(std::set<const ConsElem *>::iterator element = elems.begin(),
+          end = elems.end(); element != end; ++element) {
+          // errs() << (*element)-> << "\n";
+        }
+  }
+
+  errs() << "----- Trying to print out ConstraintSet -----\n";
+  /// there are 4 types "kind": default, default-sinks, explicit, explicit-sinks
+  /// try "default" first
+  std::vector<LHConstraint> &set = kit->getOrCreateConstraintSet("default");
+  /// set contains all constraints, constraints are pairs of ConsElem
+  /// can't joint on rhs, only on lhs
+  for(std::set<LHJoin>::iterator constraint = set.begin(), end = set.end();
+      constraint != end; ++constraint) {
+        /// a constraint contains two ConElem: lhs and rhs.
+        /// We need to search through valueMap, locMap and vargMap to get the
+        /// value paired to both ConElems.
+
+        // first try lhs
+        DenseMap<const Value *, const ConsElem *>::iterator curValue = summarySinkValueConstraintMap.find(&((*constraint)->lhs)));
+        // not found in summarySinkValueConstraintMap
+        if (curValue == summarySinkValueConstraintMap.end()) {
+          DenseMap<const AbstractLoc *, const ConsElem *>::iterator curLoc = locConstraintMap.find(&((*constraint)->lhs)));
+            // not found in locConstraintMap
+            if(curLoc == locConstraintMap.end()) {
+              DenseMap<const Function *, const ConsElem *>::iterator curVarg = summarySinkVargConstraintMap.find(&((*constraint)->lhs)));
+                // not found in summarySinkVargConstraintMap
+                if(curVarg == summarySinkVargConstraintMap.end()) {
+                  errs() << "A ConsElem is not in all maps. \n";
+                }
+                // found in summarySinkVargConstraintMap
+                else {
+                  errs() << "";
+                }
+            }
+            // found in locConstraintMap
+            else {
+              errs() << "";
+            }
+            // found in summarySinkValueConstraintMap
+        } else {
+          errs() << "";
+        }
+
+        // direction
+        errs() << " --> "; //TODO: not sure the direction
+
+        // then try thr rhs
+        DenseMap<const Value *, const ConsElem *>::iterator curValue = summarySinkValueConstraintMap.find(&((*constraint)->rhs)));
+        // not found in summarySinkValueConstraintMap
+        if (curValue == summarySinkValueConstraintMap.end()) {
+          DenseMap<const AbstractLoc *, const ConsElem *>::iterator curLoc = locConstraintMap.find(&((*constraint)->rhs)));
+            // not found in locConstraintMap
+            if(curLoc == locConstraintMap.end()) {
+              DenseMap<const Function *, const ConsElem *>::iterator curVarg = summarySinkVargConstraintMap.find(&((*constraint)->rhs)));
+                // not found in summarySinkVargConstraintMap
+                if(curVarg == summarySinkVargConstraintMap.end()) {
+                  errs() << "A ConsElem is not in all maps. \n";
+                }
+                // found in summarySinkVargConstraintMap
+                else {
+                  errs() << "";
+                }
+            }
+            // found in locConstraintMap
+            else {
+              errs() << "";
+            }
+            // found in summarySinkValueConstraintMap
+        } else {
+          errs() << "";
+        }
+      }
+
+
+
+  /// followings are Map of values, locations and vargs,
+  /// they contain pairs std::make_pair(&value, &elem), and std::make_pair(&loc, &elem)
+
+  // summarySinkValueConstraintMap,    // valueMap
+  // locConstraintMap,                 // locMap
+  // summarySinkVargConstraintMap      // vargMap
+
+  /// for tainted and greatestSolution  not sure what does that mean.
+  // summarySourceValueConstraintMap,  // valueMap
+  // locConstraintMap,                 // locMap
+  // summarySourceVargConstraintMap    // vargMap
 
   return Unit();
 }
@@ -400,13 +496,13 @@ Infoflow::leastSolution(std::set<std::string> kinds, bool implicit, bool sinks) 
   if (sinks) kinds.insert("default-sinks");
   if (implicit) kinds.insert("implicit");
   if (implicit && sinks) kinds.insert("implicit-sinks");
-  return new InfoflowSolution(*this,
-                              kit->leastSolution(kinds),
-                              kit->highConstant(),
+  return new InfoflowSolution(*this,                            //infoflow
+                              kit->leastSolution(kinds),        //ConsSoln* s
+                              kit->highConstant(),              //const ConsElem & high
                               false, /* default to untainted */
-                              summarySinkValueConstraintMap,
-                              locConstraintMap,
-                              summarySinkVargConstraintMap);
+                              summarySinkValueConstraintMap,    // valueMap
+                              locConstraintMap,                 // locMap
+                              summarySinkVargConstraintMap);    // vargMap
 }
 
 InfoflowSolution *
@@ -417,13 +513,13 @@ Infoflow::greatestSolution(std::set<std::string> kinds, bool implicit) {
     kinds.insert("implicit");
     kinds.insert("implicit-sinks");
   }
-  return new InfoflowSolution(*this,
-                              kit->greatestSolution(kinds),
-                              kit->highConstant(),
+  return new InfoflowSolution(*this,                            //infoflow
+                              kit->greatestSolution(kinds),     //ConsSoln* s
+                              kit->highConstant(),              //const ConsElem & high
                               true, /* default to tainted */
-                              summarySourceValueConstraintMap,
-                              locConstraintMap,
-                              summarySourceVargConstraintMap);
+                              summarySourceValueConstraintMap,  // valueMap
+                              locConstraintMap,                 // locMap
+                              summarySourceVargConstraintMap);  // vargMap
 }
 
 const std::set<const AbstractLoc *> &

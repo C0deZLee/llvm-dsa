@@ -62,9 +62,9 @@ public:
     /// Find the gfp of the constraints in the "kinds" sets
     /// Unconstrained variables will be "High" (caller delete)
     virtual ConsSoln *greatestSolution(const std::set<std::string> kinds);
-    
-    /// return the vars
-    std::vector<const LHConsVar *> getVars() {return vars;}
+    /// return the vars and joins
+    std::vector<const LHConsVar *> getVars() { return *vars; }
+    std::set<LHJoin> getJoins() { return *joins; }
 
     // Compute both least and greatest solutions simultaneously
     // for the given kind.
@@ -73,6 +73,8 @@ public:
   std::vector<PartialSolution*> solveLeastMT(std::vector<std::string> kinds, bool useDefaultSinks);
 private:
     static LHConstraintKit *singleton;
+    
+    // "defult" "default-sinks" "implicit" "implicit-sinks"
     llvm::StringMap<std::vector<LHConstraint>> constraints;
     std::set<std::string> lockedConstraintKinds;
 

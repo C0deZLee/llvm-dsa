@@ -20,6 +20,7 @@
 #include "llvm/Support/Threading.h"
 #include "llvm/Support/Atomic.h"
 #include <cassert>
+#include <pthread.h>
 
 using namespace llvm;
 

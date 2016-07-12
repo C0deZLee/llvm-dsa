@@ -5,7 +5,19 @@
 
 using namespace std;
 
+int level = 0;
 
 void printBBEntry(int ln, char* filename) {
-	cerr << "\t\tEnter BasicBlock in file " << (string)filename << " at line # " << ln << endl;
+	for (int i = 0; i<level; i++)
+		cerr << "|  ";
+	cerr << "Enter BasicBlock in file " << (string)filename << " at line # " << ln << endl;
+	level++;
+}
+
+void printBBExit(int ln, char* filename) {
+	level--;
+	for (int i = 0; i<level; i++)
+		cerr << "|  ";
+	cerr << "Exit BasicBlock" << endl;
+	// cerr << "Exit BasicBlock in file " << (string)filename << " at line # " << ln << endl;
 }

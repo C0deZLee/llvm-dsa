@@ -6,6 +6,7 @@
 #include <llvm/IR/IRBuilder.h>
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugInfoMetadata.h"
+#include <map>
 
 using namespace llvm;
 
@@ -22,7 +23,7 @@ namespace {
 		virtual bool runOnFunction(Function &F, Module &M);
 		virtual bool runOnBasicBlock(BasicBlock &BB, Module &M);
 
-		Value *filename = NULL;
+		std::map<std::string, Value *> filenames;
 
 	};
 }
@@ -41,25 +42,43 @@ bool PrintBBLine::runOnModule(Module &M) {
 bool PrintBBLine::runOnFunction(Function &F, Module &M) {
 	bool retval = false;
 
-	for (Function::iterator BB = F.begin(), E = F.end(); BB != E; BB++) {
-		retval |= runOnBasicBlock(*BB, M);
-	}
+	if (F.hasUWTable())
+		for (Function::iterator BB = F.begin(), E = F.end(); BB != E; BB++) {
+			retval |= runOnBasicBlock(*BB, M);
+		}
 	return retval;
 }
 
 bool PrintBBLine::runOnBasicBlock(BasicBlock &BB, Module &M) {
 	FunctionType *FTy = FunctionType::get(Type::getVoidTy(M.getContext()), {Type::getInt32Ty(M.getContext())});
-	Constant *printLine = M.getOrInsertFunction("_Z12printBBEntryiPc", FTy);
+	Constant *enter = M.getOrInsertFunction("_Z12printBBEntryiPc", FTy);
+	Constant *exit = M.getOrInsertFunction("_Z11printBBExitiPc", FTy);
 
 	for (BasicBlock::iterator I = BB.begin(), E = BB.end(); I != E; I++) {
 		MDLocation *loc = I->getDebugLoc();
+		Value *filename;
 		if (!loc) continue;
 		if (isa<PHINode>(*I)) I++;
 		IRBuilder<> builder(I);
-		if (!filename) filename = builder.CreateGlobalStringPtr(loc->getFilename(), ".str");
-		ConstantInt *line = ConstantInt::get(M.getContext(), APInt(32, loc->getLine(), false));
 
-		builder.CreateCall(printLine, {line, filename});
+		if (filenames.find(loc->getFilename()) == filenames.end()) {
+			filename = builder.CreateGlobalStringPtr(loc->getFilename(), ".str");
+			filenames[loc->getFilename()] = filename;
+		}
+		else
+			filename = filenames[loc->getFilename()];
+
+		ConstantInt *lineEnt = ConstantInt::get(M.getContext(), APInt(32, loc->getLine(), false));
+
+		builder.CreateCall(enter, {lineEnt, filename});
+
+		for (E--; !E->getDebugLoc(); E--);
+		IRBuilder<> builderExt(E);
+		loc = E->getDebugLoc();
+		if (loc) {
+			ConstantInt *lineExt = ConstantInt::get(M.getContext(), APInt(32, loc->getLine(), false));
+			builderExt.CreateCall(exit, {lineExt, filename});
+		}
 		break;
 	}
 

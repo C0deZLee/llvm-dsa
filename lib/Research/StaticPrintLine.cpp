@@ -7,6 +7,7 @@
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/Metadata.h"
+#include "llvm/Support/CommandLine.h"
 
 using namespace llvm;
 
@@ -35,7 +36,7 @@ bool StaticPrintBBLine::runOnModule(Module &M) {
 
 bool StaticPrintBBLine::runOnFunction(Function &F, Module &M) {
 	bool retval = false;
-
+	errs() << F.hasUWTable() << "\n";
 	for (Function::iterator BB = F.begin(), E = F.end(); BB != E; BB++) {
 		retval |= runOnBasicBlock(*BB, M);
 	}
@@ -48,6 +49,9 @@ bool StaticPrintBBLine::runOnBasicBlock(BasicBlock &BB, Module &M) {
 		if (MDLocation *loc = I->getDebugLoc()) {
 			loc->dump();
 			errs() << loc->getFilename() << "\n";
+			if (loc = (--E)->getDebugLoc())
+				loc->dump();
+			break;
 		}
 	}
 	return false;

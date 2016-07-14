@@ -48,6 +48,11 @@ const LHConstant &LHConstant::join(const LHConstant & other) const {
     return (level == LOW) ? other : *this;
 }
 
+void LHConstant::dump (llvm::raw_ostream& o) const {
+    if (level == LOW) { o << "LOW"; }
+    else { o << "HIGH"; }
+}
+
 bool LHConstant::operator== (const ConsElem& elem) const {
     if (const LHConstant *other = llvm::dyn_cast<const LHConstant>(&elem)) {
         return (this->level == other->level);
@@ -69,6 +74,10 @@ bool LHConsVar::operator== (const ConsElem& elem) const {
     } else {
         return false;
     }
+}
+
+void LHConsVar::dump (llvm::raw_ostream& o) const {
+    o << desc;
 }
 
 LHJoin::LHJoin(std::set<const ConsElem *> elements) : elems(elements) { }
@@ -106,6 +115,14 @@ const LHJoin *LHJoin::create(const ConsElem &e1, const ConsElem &e2) {
     }
 
     return new LHJoin(elements);
+}
+
+void LHJoin::dump (llvm::raw_ostream& o) const {
+    o << "Join (";
+    for (std::set<const ConsElem *>::iterator elem = elems.begin(), end = elems.end(); elem != end; ++elem) {
+        (*elem)->dump(o);
+    }
+    o << ")";
 }
 
 bool LHJoin::operator== (const ConsElem& elem) const {

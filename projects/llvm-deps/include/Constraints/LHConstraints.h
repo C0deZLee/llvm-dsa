@@ -35,6 +35,7 @@ public:
     /// Returns the least upper bound of two members of the L-H lattice
     virtual const LHConstant &join(const LHConstant & other) const;
     virtual bool operator== (const ConsElem& c) const;
+    virtual void dump(llvm::raw_ostream& o) const;
 
     /// Support for llvm-style RTTI (isa<>, dyn_cast<>, etc.)
     virtual DepsType type() const { return DT_LHConstant; }
@@ -64,6 +65,7 @@ public:
       set.insert(this);
     }
     virtual bool operator== (const ConsElem& c) const;
+    virtual void dump(llvm::raw_ostream& o) const;
 
     /// Support for llvm-style RTTI (isa<>, dyn_cast<>, etc.)
     virtual DepsType type() const { return DT_LHConsVar; }
@@ -97,6 +99,7 @@ public:
         return elems.size() < c.elems.size();
       return elems < c.elems;
     }
+    virtual void dump(llvm::raw_ostream& o) const;
 
     /// Support for llvm-style RTTI (isa<>, dyn_cast<>, etc.)
     virtual DepsType type() const { return DT_LHJoin; }

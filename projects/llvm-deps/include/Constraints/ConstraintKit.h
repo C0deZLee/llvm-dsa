@@ -16,6 +16,7 @@
 #define CONSTRAINTKIT_H_
 
 #include "Constraints/DepsTypes.h"
+#include "llvm/Support/raw_ostream.h"
 #include <set>
 #include <string>
 
@@ -33,6 +34,7 @@ public:
 
     /// Support for llvm-style RTTI (isa<>, dyn_cast<>, etc.)
     virtual DepsType type() const = 0;
+    virtual void dump(llvm::raw_ostream &o) const = 0;
 
     virtual ~ConsElem() {}
 };

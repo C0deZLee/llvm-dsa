@@ -132,63 +132,12 @@ Infoflow::runOnContext(const Infoflow::AUnitType unit, const Unit input) {
         /// We need to search through valueMap, locMap and vargMap to get the
         /// value paired to both ConElems.
 
-        // first try lhs
-        DenseMap<const Value *, const ConsElem *>::iterator curValue = summarySinkValueConstraintMap.find((*constraint).lhs());
-        // not found in summarySinkValueConstraintMap
-        if (curValue == summarySinkValueConstraintMap.end()) {
-          DenseMap<const AbstractLoc *, const ConsElem *>::iterator curLoc = locConstraintMap.find((*constraint).lhs());
-            // not found in locConstraintMap
-            if(curLoc == locConstraintMap.end()) {
-              DenseMap<const Function *, const ConsElem *>::iterator curVarg = summarySinkVargConstraintMap.find((*constraint).lhs());
-                // not found in summarySinkVargConstraintMap
-                if(curVarg == summarySinkVargConstraintMap.end()) {
-                  errs() << "A ConsElem is not in all maps. \n";
-                }
-                // found in summarySinkVargConstraintMap
-                else {
-                  errs() << "";
-                }
-            }
-            // found in locConstraintMap
-            else {
-              errs() << "";
-            }
-            // found in summarySinkValueConstraintMap
-        } else {
-          errs() << "";
-        }
-
-        // direction
-        errs() << " --> "; //TODO: not sure the direction
-
-        // then try thr rhs
-        DenseMap<const Value *, const ConsElem *>::iterator curValue = summarySinkValueConstraintMap.find(&((*constraint).rhs));
-        // not found in summarySinkValueConstraintMap
-        if (curValue == summarySinkValueConstraintMap.end()) {
-          DenseMap<const AbstractLoc *, const ConsElem *>::iterator curLoc = locConstraintMap.find(&((*constraint).rhs));
-            // not found in locConstraintMap
-            if(curLoc == locConstraintMap.end()) {
-              DenseMap<const Function *, const ConsElem *>::iterator curVarg = summarySinkVargConstraintMap.find(&((*constraint).rhs));
-                // not found in summarySinkVargConstraintMap
-                if(curVarg == summarySinkVargConstraintMap.end()) {
-                  errs() << "A ConsElem is not in all maps. \n";
-                }
-                // found in summarySinkVargConstraintMap
-                else {
-                  errs() << "";
-                }
-            }
-            // found in locConstraintMap
-            else {
-              errs() << "";
-            }
-            // found in summarySinkValueConstraintMap
-        } else {
-          errs() << "";
-        }
-      }
-
-
+        // print lhs
+        (*constraint).lhs().dump(errs());
+        errs() << "-->";
+        (*constraint).rhs().dump(errs());
+        errs()  << "\n";
+  }
 
   /// followings are Map of values, locations and vargs,
   /// they contain pairs std::make_pair(&value, &elem), and std::make_pair(&loc, &elem)

@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 # linking example
 
+if [ "$(uname)" == "Darwin" ]; then
+        EXT="dylib"
+else
+        EXT="so"
+fi
+
 CPPFLAGS=
 LLVMLIBS=
 LDFLAGS=
@@ -16,11 +22,11 @@ LEVEL="../../.."
 $LEVEL/Debug+Asserts/bin/clang -O0 -emit-llvm -o test.bc -c test.c
 
 ## opt -load *.so -infoflow < $BENCHMARKS/welcome/welcome.bc -o welcome.bc
-$LEVEL/Debug+Asserts/bin/opt  -load $LEVEL/projects/poolalloc/Debug+Asserts/lib/LLVMDataStructure.so \
-  -load $LEVEL/projects/llvm-deps/Debug+Asserts/lib/Constraints.so  \
-  -load $LEVEL/projects/llvm-deps/Debug+Asserts/lib/sourcesinkanalysis.so \
-  -load $LEVEL/projects/llvm-deps/Debug+Asserts/lib/pointstointerface.so \
-  -load $LEVEL/projects/llvm-deps/Debug+Asserts/lib/Deps.so  \
+$LEVEL/Debug+Asserts/bin/opt  -load $LEVEL/projects/poolalloc/Debug+Asserts/lib/LLVMDataStructure.$EXT \
+  -load $LEVEL/projects/llvm-deps/Debug+Asserts/lib/Constraints.$EXT  \
+  -load $LEVEL/projects/llvm-deps/Debug+Asserts/lib/sourcesinkanalysis.$EXT \
+  -load $LEVEL/projects/llvm-deps/Debug+Asserts/lib/pointstointerface.$EXT \
+  -load $LEVEL/projects/llvm-deps/Debug+Asserts/lib/Deps.$EXT  \
   -infoflow  -debug < $LEVEL/projects/llvm-deps/test/test.bc > /dev/null
 
 ## link instrumentation module

@@ -1,7 +1,15 @@
 #!/bin/bash
 
+if [ "$(uname)" == "Darwin" ]; then
+        READLINK="greadlink"
+        EXT="dylib"
+else
+        READLINK="readlink"
+        EXT="so"
+fi
+        
 if [ -n $BASE ]; then
-	TEST=$(dirname $(readlink -f $0))
+	TEST=$(dirname $($READLINK -f $0))
 	BASE=$(dirname $TEST)
 	LLVMBIN="$BASE/Debug+Asserts/bin"
 	LLVMLIB="$BASE/Debug+Asserts/lib"
@@ -12,9 +20,15 @@ if [ -n $BASE ]; then
 	export PATH="${LLVMBIN}:$PATH"
 fi
 
-CPPFLAGS=-g
+if [ "$(uname)" == "Darwin" ]; then
+        CPPFLAGS="-g -stdlib=libstdc++"
+        LDFLAGS="-stdlib=libstdc++"
+else
+        CPPFLAGS="-g"
+        LDFLAGS=
+fi
+
 LLVMLIBS=
-LDFLAGS=
 OPTFLAGS="-sprtLnNum -prtLnNum"
 TESTS="gcd welcome compression recursive"
 
@@ -75,7 +89,7 @@ if [ $# -gt 1 ]; then
 	for f in *.bc; do
 		llvm-dis $f
 		if [[ $f != "printLine.bc" ]]; then
-			opt -load $LLVMLIB/Research.so $opt $f -o ${f%.bc}.g.bc
+			opt -load $LLVMLIB/Research.$EXT $opt $f -o ${f%.bc}.g.bc
 			ret=$?
 			if [ $ret -ne 0 ]; then
 				echo "opt failed when processing file $f, ret=$ret"

@@ -99,26 +99,26 @@ Infoflow::runOnContext(const Infoflow::AUnitType unit, const Unit input) {
   errs() << "]\n");
   generateFunctionConstraints(unit.function());
 
-  errs() << "----- Trying to print out kit->vars -----\n";
-  std::vector<const LHConsVar *> vars = kit->getVars();
-  for (std::vector<const LHConsVar *>::iterator var = vars.begin(), end = vars.end();
-    var != end; ++var) {
-      if((*var)->getDesc() != "")
-        errs() << (*var)->getDesc() << "\n";
-  }
+  // errs() << "----- Trying to print out kit->vars -----\n";
+  // std::vector<const LHConsVar *> vars = kit->getVars();
+  // for (std::vector<const LHConsVar *>::iterator var = vars.begin(), end = vars.end();
+  //  var != end; ++var) {
+  //    if((*var)->getDesc() != "")
+  //       errs() << (*var)->getDesc() << "\n";
+  // }
 
   // kit->getOrCreateConstraintSet(kind)
-  errs() << "----- Trying to print out kit->joins -----\n";
-  std::set<LHJoin> joins = kit->getJoins();
-  for (std::set<LHJoin>::iterator join = joins.begin(), end = joins.end();
-      join != end; ++join) {
-        errs() << "--- Elements of one join ---\n";
-        std::set<const ConsElem *> elems = (*join).elements();
-        for(std::set<const ConsElem *>::iterator element = elems.begin(),
-          end = elems.end(); element != end; ++element) {
-          // errs() << (*element)-> << "\n";
-        }
-  }
+  //errs() << "----- Trying to print out kit->joins -----\n";
+  //std::set<LHJoin> joins = kit->getJoins();
+  //for (std::set<LHJoin>::iterator join = joins.begin(), end = joins.end();
+  //    join != end; ++join) {
+  //      errs() << "--- Elements of one join ---\n";
+  //      std::set<const ConsElem *> elems = (*join).elements();
+  //      for(std::set<const ConsElem *>::iterator element = elems.begin(),
+  //        end = elems.end(); element != end; ++element) {
+  //        // errs() << (*element)-> << "\n";
+  //      }
+  //}
 
   errs() << "----- Trying to print out ConstraintSet -----\n";
   /// there are 4 types "kind": default, default-sinks, explicit, explicit-sinks
@@ -151,7 +151,14 @@ Infoflow::runOnContext(const Infoflow::AUnitType unit, const Unit input) {
   // locConstraintMap,                 // locMap
   // summarySourceVargConstraintMap    // vargMap
 
-  return Unit();
+    std::set<std::string> kinds;
+    kinds.insert("test");
+
+    errs() << "Least solution\n";
+    InfoflowSolution* soln = leastSolution(kinds, true, false);
+    soln->allTainted();
+  
+    return Unit();
 }
 
 void
@@ -304,6 +311,19 @@ InfoflowSolution::isTainted(const Value & value) {
     return defaultTainted;
   }
 }
+
+void
+InfoflowSolution::allTainted( ) {
+  for (DenseMap<const Value *, const ConsElem *>::const_iterator entry = valueMap.begin(), end = valueMap.end();
+         entry != end; ++entry) {
+    const Value& v = *(entry->first);
+    if (isTainted(v)) {
+      errs() << "Tainted! \n";
+      v.dump();
+    }
+  }
+}
+
 
 bool
 InfoflowSolution::isDirectPtrTainted(const Value & value) {
@@ -548,6 +568,8 @@ Infoflow::getOrCreateConsElem(const ContextID ctxt, const Value &value) {
   DenseMap<const Value *, const ConsElem *> & valueMap = getOrCreateValueConstraintMap(ctxt);
   DenseMap<const Value *, const ConsElem *>::iterator curElem = valueMap.find(&value);
   if (curElem == valueMap.end()) {
+      errs() << "Creating var " << value.getName() << " for \n" ;
+      value.dump();
       const ConsElem & elem = kit->newVar(value.getName());
       valueMap.insert(std::make_pair(&value, &elem));
 
@@ -555,6 +577,9 @@ Infoflow::getOrCreateConsElem(const ContextID ctxt, const Value &value) {
       const ConsElem & summarySource = getOrCreateConsElemSummarySource(value);
       kit->addConstraint("default",summarySource,elem);
       putOrConstrainConsElemSummarySink("default", value, elem);
+      
+      if (value.getName() == "a")
+         setTainted("test", value);
 
       return elem;
   } else {

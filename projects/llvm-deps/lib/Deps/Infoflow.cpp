@@ -104,15 +104,24 @@ Infoflow::taintStr (std::string kind, std::string match) {
     // value.dump();
 
     std::string s;
-    if (value.hasName())
+    if (value.hasName() && value.getName() == match) {
       s = value.getName();
+      const std::set<const AbstractLoc *> & locs = locsForValue(value);
+      for (std::set<const AbstractLoc *>::const_iterator loc = locs.begin(),
+             end = locs.end(); loc != end; ++loc) {
+        DenseMap<const AbstractLoc *, const ConsElem *>::iterator curElem = locConstraintMap.find(*loc);
+        if (curElem != locConstraintMap.end()) {
+           kit->addConstraint(kind, kit->highConstant(), *(curElem->second));
+        }
+      }
+    }
     else {
       llvm::raw_string_ostream* ss = new llvm::raw_string_ostream(s);
       *ss << value; // dump value info to ss
       ss->str(); // flush stream to s
+      if (s.find(match) == 0) // test if the value's content starts with match
+        setTainted(kind, value);
     } 
-    if (s.find(match) == 0) // test if the value's content starts with match
-      setTainted(kind, value);
   }
 }
 

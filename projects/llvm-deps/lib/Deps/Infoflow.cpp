@@ -23,6 +23,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/CommandLine.h"
+#include <fstream>
 
 namespace deps {
 
@@ -92,6 +93,29 @@ Infoflow::bottomOutput() const {
   return Unit();
 }
 
+/** Taint a Value whose name matches s */
+void 
+Infoflow::taintStr (std::string kind, std::string match) {
+  for (DenseMap<const Value *, const ConsElem *>::const_iterator entry = summarySourceValueConstraintMap.begin(),
+    end = summarySourceValueConstraintMap.end(); entry != end; ++entry) {
+    const Value& value = *(entry->first);
+
+    // errs() << "Visiting ";
+    // value.dump();
+
+    std::string s;
+    if (value.hasName())
+      s = value.getName();
+    else {
+      llvm::raw_string_ostream* ss = new llvm::raw_string_ostream(s);
+      *ss << value; // dump value info to ss
+      ss->str(); // flush stream to s
+    } 
+    if (s.find(match) == 0) // test if the value's content starts with match
+      setTainted(kind, value);
+  }
+}
+
 const Unit
 Infoflow::runOnContext(const Infoflow::AUnitType unit, const Unit input) {
   DEBUG(errs() << "Running on " << unit.function().getName() << " in context [";
@@ -120,42 +144,40 @@ Infoflow::runOnContext(const Infoflow::AUnitType unit, const Unit input) {
   //      }
   //}
 
-  errs() << "----- Trying to print out ConstraintSet -----\n";
+  // errs() << "----- Trying to print out ConstraintSet -----\n";
   /// there are 4 types "kind": default, default-sinks, explicit, explicit-sinks
   /// try "default" first
-  std::vector<LHConstraint> set = kit->getOrCreateConstraintSet("default");
+  // std::vector<LHConstraint> set = kit->getOrCreateConstraintSet("default");
   /// set contains all constraints, constraints are pairs of ConsElem
   /// can't joint on rhs, only on lhs
-  for(std::vector<LHConstraint>::iterator constraint = set.begin(), end = set.end();
-      constraint != end; ++constraint) {
+  // for(std::vector<LHConstraint>::iterator constraint = set.begin(), end = set.end();
+  //    constraint != end; ++constraint) {
         /// a constraint contains two ConElem: lhs and rhs.
         /// We need to search through valueMap, locMap and vargMap to get the
         /// value paired to both ConElems.
 
         // print lhs
-        (*constraint).lhs().dump(errs());
-        errs() << "-->";
-        (*constraint).rhs().dump(errs());
-        errs()  << "\n";
-  }
+        //(*constraint).lhs().dump(errs());
+        //errs() << "-->";
+        //(*constraint).rhs().dump(errs());
+        //errs()  << "\n";
+  // }
 
-  /// followings are Map of values, locations and vargs,
-  /// they contain pairs std::make_pair(&value, &elem), and std::make_pair(&loc, &elem)
-
-  // summarySinkValueConstraintMap,    // valueMap
-  // locConstraintMap,                 // locMap
-  // summarySinkVargConstraintMap      // vargMap
-
-  /// for tainted and greatestSolution  not sure what does that mean.
-  // summarySourceValueConstraintMap,  // valueMap
-  // locConstraintMap,                 // locMap
-  // summarySourceVargConstraintMap    // vargMap
+    std::ifstream infile("taint.txt"); // read tainted values from txt file
+    std::string line;
+    while (std::getline(infile, line)) {
+      taintStr ("test", line);
+    }
 
     std::set<std::string> kinds;
     kinds.insert("test");
 
-    errs() << "Least solution\n";
-    InfoflowSolution* soln = leastSolution(kinds, true, false);
+    errs() << "Least solution with explicit contraints\n";
+    InfoflowSolution* soln = leastSolution(kinds, false, true);
+    soln->allTainted();
+
+    errs() << "Least solution with implicit contraints\n";
+    soln = leastSolution(kinds, true, true);
     soln->allTainted();
   
     return Unit();
@@ -318,7 +340,7 @@ InfoflowSolution::allTainted( ) {
          entry != end; ++entry) {
     const Value& v = *(entry->first);
     if (isTainted(v)) {
-      errs() << "Tainted! \n";
+      errs() << "Tainted! ";
       v.dump();
     }
   }
@@ -568,8 +590,8 @@ Infoflow::getOrCreateConsElem(const ContextID ctxt, const Value &value) {
   DenseMap<const Value *, const ConsElem *> & valueMap = getOrCreateValueConstraintMap(ctxt);
   DenseMap<const Value *, const ConsElem *>::iterator curElem = valueMap.find(&value);
   if (curElem == valueMap.end()) {
-      errs() << "Creating var " << value.getName() << " for \n" ;
-      value.dump();
+      // errs() << "Creating var " << value.getName() << " for \n" ;
+      // errs() << value;
       const ConsElem & elem = kit->newVar(value.getName());
       valueMap.insert(std::make_pair(&value, &elem));
 
@@ -577,10 +599,6 @@ Infoflow::getOrCreateConsElem(const ContextID ctxt, const Value &value) {
       const ConsElem & summarySource = getOrCreateConsElemSummarySource(value);
       kit->addConstraint("default",summarySource,elem);
       putOrConstrainConsElemSummarySink("default", value, elem);
-      
-      if (value.getName() == "a")
-         setTainted("test", value);
-
       return elem;
   } else {
       return *(curElem->second);

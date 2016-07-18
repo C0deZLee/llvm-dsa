@@ -230,6 +230,8 @@ class Infoflow :
 
     FlowRecord currentContextFlowRecord(bool implicit) const;
 
+    void taintStr (std::string kind, std::string match);
+
     const std::set<const AbstractLoc *> &locsForValue(const Value & value) const;
     const std::set<const AbstractLoc *> &reachableLocsForValue(const Value & value) const;
 

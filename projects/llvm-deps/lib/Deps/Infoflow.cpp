@@ -20,7 +20,10 @@
 #include "Infoflow.h"
 #include "SignatureLibrary.h"
 
+#include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/CommandLine.h"
 #include <fstream>
@@ -342,6 +345,53 @@ InfoflowSolution::isTainted(const Value & value) {
   }
 }
 
+const Function* findEnclosingFunc(const Value* V) {
+  if (const Argument* Arg = dyn_cast<Argument>(V)) {
+    return Arg->getParent();
+  }
+  if (const Instruction* I = dyn_cast<Instruction>(V)) {
+    return I->getParent()->getParent();
+  }
+  return NULL;
+}
+
+const MDLocation* findVar(const Value* V, const Function* F) {
+  for (const_inst_iterator Iter = inst_begin(F), End = inst_end(F); Iter != End; ++Iter) {
+    const Instruction* I = &*Iter;
+    for (unsigned i=0; i< I->getNumOperands(); i++) {
+      if (V == I->getOperand(i)) {
+        return I->getDebugLoc();
+      }
+    }
+  }
+  return NULL;
+}
+
+void getOriginalLocation(const Value* V) {
+  if (const GlobalVariable* glb = dyn_cast<GlobalVariable>(V)) {
+    errs() << "Global var: " << glb->getName();
+    return;
+  }
+
+  const Function* F = findEnclosingFunc(V);
+  if (!F) {errs() << "Unknown location"; return;}
+
+  // check function parameters
+  for (Function::ArgumentListType::const_iterator ite = F->arg_begin(), end = F->arg_end();
+         ite != end; ++ite) {
+    if (&*ite == V) {
+        errs() << "Function " << F->getName() << " Arg: " << ite->getName();
+        return;
+    }
+  }
+
+  const MDLocation* Loc = findVar(V, F);
+  if (!Loc) {errs() << "Unknown location"; return;}
+
+  errs() << Loc->getFilename() << " line " << std::to_string(Loc->getLine());
+  return;
+}
+
 void
 InfoflowSolution::allTainted( ) {
   for (DenseMap<const Value *, const ConsElem *>::const_iterator entry = valueMap.begin(), end = valueMap.end();
@@ -349,7 +399,9 @@ InfoflowSolution::allTainted( ) {
     const Value& v = *(entry->first);
     if (isTainted(v)) {
       errs() << "Tainted! ";
-      v.dump();
+      // v.dump();
+      getOriginalLocation(&v);
+      errs() << "\n";
     }
   }
 }
@@ -1510,6 +1562,10 @@ Infoflow::constrainIntrinsic(const IntrinsicInst & intr, Flows & flows) {
   case Intrinsic::log:
   case Intrinsic::fma:
     return this->operandsAndPCtoValue(intr, flows);
+  // dbg
+  case Intrinsic::dbg_declare:
+  case Intrinsic::dbg_value:
+    return;
   // Unsupported intrinsics
   default:
     DEBUG(errs() << "Unsupported intrinsic: " << Intrinsic::getName(intr.getIntrinsicID()) << "\n");

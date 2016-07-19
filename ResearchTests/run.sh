@@ -1,45 +1,11 @@
 #!/bin/bash
 
-if [ "$(uname)" == "Darwin" ]; then
-        READLINK="greadlink"
-        EXT="dylib"
-else
-        READLINK="readlink"
-        EXT="so"
-fi
-        
-if [ -n $BASE ]; then
-	TEST=$(dirname $($READLINK -f $0))
-	BASE=$(dirname $TEST)
-	LLVMBIN="$BASE/Debug+Asserts/bin"
-	LLVMLIB="$BASE/Debug+Asserts/lib"
-	LLVMSRCLIB="$BASE/lib"
-	BENCHMARKS="$TEST/benchmarks"
-	BBInfo="$TEST/instrumentation/BBInfo"
-	TMP="$TEST/tmp"
-	export PATH="${LLVMBIN}:$PATH"
-fi
-
-if [ "$(uname)" == "Darwin" ]; then
-        CPPFLAGS="-g -stdlib=libstdc++"
-        LDFLAGS="-stdlib=libstdc++"
-else
-        CPPFLAGS="-g"
-        LDFLAGS=
-fi
-
-LLVMLIBS=
-OPTFLAGS="-sprtLnNum -prtLnNum"
-TESTS="gcd welcome compression recursive"
-
-make -C $LLVMSRCLIB/Research
-
-if [ ! -d tmp ]; then
-	mkdir tmp
-	echo ".PHONY: clean all
-all:
-clean:
-	rm -f *.bc *.x *.ll *.o" > tmp/Makefile
+# Enable running this script without the virtual environment.
+if [ -z $VTENV ]; then
+	echo "
+Run \`source ./env.sh\` to activate the virtual environment
+Run \`source ./autocmp.sh\` to activate autocompletion for ./run.sh"
+	source ./env.sh
 fi
 
 printUsage() {
@@ -51,12 +17,16 @@ printUsage() {
 	echo " Dynamic: "
 	echo "	-prtLnNum		Dynamically print the filename and debuginfo for each BasicBlock entrance"
 	echo "Usable TESTs: "
-	echo "	$TESTS"
+	echo "	welcome 			Print Welcome message and exit"
+	echo "	gcd <arg1> <arg2>	Calculate the greatest common divisor of <arg1> and <arg2> "
+	echo "	compression 		Compress a file"
+	echo "	recursive (<arg1>)	Test with linkage of two .c files"
 	echo
 }
 
 
 if [ $# -gt 1 ]; then
+
 	tst=$2
 	opt=$1
 
@@ -69,6 +39,26 @@ if [ $# -gt 1 ]; then
 		echo "$tst is not an available test"
 		printUsage
 		exit
+	fi
+
+	make -C $LLVMSRCLIB/Research
+
+	if [ ! -d tmp ]; then
+		mkdir tmp
+		echo ".PHONY: clean all
+	all:
+	clean:
+		rm -f *.bc *.x *.ll *.o" > tmp/Makefile
+	fi
+
+	if [ "$(uname)" == "Darwin" ]; then
+		EXT="dylib"
+		CPPFLAGS="-g -stdlib=libstdc++"
+		LDFLAGS="-stdlib=libstdc++"
+	else
+		EXT="so"
+		CPPFLAGS="-g"
+		LDFLAGS=
 	fi
 
 	echo "Running Test: $tst with opt options $opt"
@@ -92,7 +82,7 @@ if [ $# -gt 1 ]; then
 			opt -load $LLVMLIB/Research.$EXT $opt $f -o ${f%.bc}.g.bc
 			ret=$?
 			if [ $ret -ne 0 ]; then
-				echo "opt failed when processing file $f, ret=$ret"
+				echo "opt failed when processing \"$f\", ret=$ret"
 				exit
 			fi
 		fi
@@ -104,7 +94,7 @@ if [ $# -gt 1 ]; then
 		llvm-link *.g.bc printLine.bc -o "$tst".linked.bc
 		ret=$?
 		if [ $ret -ne 0 ]; then
-			echo "llvm-link failed $ret"
+			echo "llvm-link failed ret=$ret"
 			exit
 		fi
 		for f in *.bc; do
@@ -113,21 +103,24 @@ if [ $# -gt 1 ]; then
 
 		## compile to native object file
 		llc -filetype=obj "$tst".linked.bc -o "$tst".o
-		if [ $? -ne 0 ]; then
-			echo "llc failed $?"
+		ret=$?
+		if [ $ret -ne 0 ]; then
+			echo "llc failed ret=$ret"
 			exit
 		fi
 
 		## generate native executable
 		g++ "$tst".o $LLVMLIBS $LDFLAGS -o "$tst".x
-		if [ $? -ne 0 ]; then
-			echo "g++ failed $?"
+		ret=$?
+		if [ $ret -ne 0 ]; then
+			echo "g++ failed ret=$ret"
 			exit
 		fi
 
 		shift; shift # remove the first two arguments and pass the rest to the opt-ed program
 		echo "Running ./$tst $@"
 		./"$tst".x "$@"
+		echo "Return $?"
 	else
 		echo "Analysis only"
 	fi

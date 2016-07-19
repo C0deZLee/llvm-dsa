@@ -71,6 +71,22 @@ Infoflow::doFinalization() {
   // delete signatureRegistrar;
   // now deleted in destructor, because we need the registrar
   // for computing propagatesTaint
+    std::ifstream infile("taint.txt"); // read tainted values from txt file
+    std::string line;
+    while (std::getline(infile, line)) {
+      taintStr ("test", line);
+    }
+
+    std::set<std::string> kinds;
+    kinds.insert("test");
+
+    errs() << "Least solution with explicit contraints\n";
+    InfoflowSolution* soln = leastSolution(kinds, false, true);
+    soln->allTainted();
+
+    errs() << "Least solution with implicit contraints\n";
+    soln = leastSolution(kinds, true, true);
+    soln->allTainted();
 }
 
 void Infoflow::registerSignatures() {
@@ -172,24 +188,7 @@ Infoflow::runOnContext(const Infoflow::AUnitType unit, const Unit input) {
         //errs()  << "\n";
   // }
 
-    std::ifstream infile("taint.txt"); // read tainted values from txt file
-    std::string line;
-    while (std::getline(infile, line)) {
-      taintStr ("test", line);
-    }
-
-    std::set<std::string> kinds;
-    kinds.insert("test");
-
-    errs() << "Least solution with explicit contraints\n";
-    InfoflowSolution* soln = leastSolution(kinds, false, true);
-    soln->allTainted();
-
-    errs() << "Least solution with implicit contraints\n";
-    soln = leastSolution(kinds, true, true);
-    soln->allTainted();
-  
-    return Unit();
+  return Unit();
 }
 
 void

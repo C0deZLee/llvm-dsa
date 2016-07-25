@@ -15,7 +15,7 @@ if [ -n "${VTENV}" ]; then
 fi
 
 if [ "$(uname)" == "Darwin" ]; then
-	alias readlink="greadlink"
+	alias readlink="readlink"
 fi
 
 

@@ -84,6 +84,7 @@ TaintAnalysis::runOnModule(Module &M) {
   errs() << "Least solution with implicit contraints\n";
   soln = ifa->leastSolution(kinds, true, true);
   soln->allTainted();
+  return false;
 }
 
 }

@@ -25,7 +25,6 @@
 #include "InfoflowSignature.h"
 #include "PointsToInterface.h"
 #include "SourceSinkAnalysis.h"
-#include "TaintAnalysis.h"
 
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
@@ -102,6 +101,8 @@ private:
   DenseMap<const AbstractLoc *, const ConsElem *> & locMap;
   DenseMap<const Function *, const ConsElem *> & vargMap;
 };
+
+class TaintAnalysis;
 
 /// A constraint-based, context-sensitive, interprocedural information
 /// flow analysis pass. Exposes information-flow constraints with a

@@ -27,7 +27,8 @@ $LEVEL/Debug+Asserts/bin/opt  -load $LEVEL/projects/poolalloc/Debug+Asserts/lib/
   -load $LEVEL/projects/llvm-deps/Debug+Asserts/lib/sourcesinkanalysis.$EXT \
   -load $LEVEL/projects/llvm-deps/Debug+Asserts/lib/pointstointerface.$EXT \
   -load $LEVEL/projects/llvm-deps/Debug+Asserts/lib/Deps.$EXT  \
-  -infoflow  -debug < $LEVEL/projects/llvm-deps/test/test.bc > /dev/null
+  -load $LEVEL/projects/llvm-deps/Debug+Asserts/lib/Security.$EXT  \
+  -taintanalysis  -debug < $LEVEL/projects/llvm-deps/test/test.bc > /dev/null
 
 ## link instrumentation module
 #llvm-link welcome.bc sample.bc -o welcome.linked.bc

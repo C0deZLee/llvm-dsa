@@ -19,7 +19,7 @@ if [ "$(uname)" == "Darwin" ]; then
 fi
 
 
-export TEST=$(dirname $(readlink -f $0))
+export TEST=$(dirname $(greadlink -f env.sh))
 export BASE=$(dirname $TEST)
 export LLVMBIN="$BASE/Debug+Asserts/bin"
 export LLVMLIB="$BASE/Debug+Asserts/lib"

@@ -26,7 +26,6 @@
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/CommandLine.h"
-#include <fstream>
 
 namespace deps {
 
@@ -74,22 +73,6 @@ Infoflow::doFinalization() {
   // delete signatureRegistrar;
   // now deleted in destructor, because we need the registrar
   // for computing propagatesTaint
-    std::ifstream infile("taint.txt"); // read tainted values from txt file
-    std::string line;
-    while (std::getline(infile, line)) {
-      taintStr ("test", line);
-    }
-
-    std::set<std::string> kinds;
-    kinds.insert("test");
-
-    errs() << "Least solution with explicit contraints\n";
-    InfoflowSolution* soln = leastSolution(kinds, false, true);
-    soln->allTainted();
-
-    errs() << "Least solution with implicit contraints\n";
-    soln = leastSolution(kinds, true, true);
-    soln->allTainted();
 }
 
 void Infoflow::registerSignatures() {
@@ -110,38 +93,6 @@ Infoflow::bottomInput() const {
 const Unit
 Infoflow::bottomOutput() const {
   return Unit();
-}
-
-/** Taint a Value whose name matches s */
-void 
-Infoflow::taintStr (std::string kind, std::string match) {
-  for (DenseMap<const Value *, const ConsElem *>::const_iterator entry = summarySourceValueConstraintMap.begin(),
-    end = summarySourceValueConstraintMap.end(); entry != end; ++entry) {
-    const Value& value = *(entry->first);
-
-    // errs() << "Visiting ";
-    // value.dump();
-
-    std::string s;
-    if (value.hasName() && value.getName() == match) {
-      s = value.getName();
-      const std::set<const AbstractLoc *> & locs = locsForValue(value);
-      for (std::set<const AbstractLoc *>::const_iterator loc = locs.begin(),
-             end = locs.end(); loc != end; ++loc) {
-        DenseMap<const AbstractLoc *, const ConsElem *>::iterator curElem = locConstraintMap.find(*loc);
-        if (curElem != locConstraintMap.end()) {
-           kit->addConstraint(kind, kit->highConstant(), *(curElem->second));
-        }
-      }
-    }
-    else {
-      llvm::raw_string_ostream* ss = new llvm::raw_string_ostream(s);
-      *ss << value; // dump value info to ss
-      ss->str(); // flush stream to s
-      if (s.find(match) == 0) // test if the value's content starts with match
-        setTainted(kind, value);
-    } 
-  }
 }
 
 const Unit

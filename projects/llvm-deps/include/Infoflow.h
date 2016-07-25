@@ -25,6 +25,7 @@
 #include "InfoflowSignature.h"
 #include "PointsToInterface.h"
 #include "SourceSinkAnalysis.h"
+#include "TaintAnalysis.h"
 
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
@@ -109,6 +110,7 @@ private:
 class Infoflow :
   public CallSensitiveAnalysisPass<Unit,Unit,1,CallerContext> {
   friend class InfoflowSolution;
+  friend class TaintAnalysis;
 
   public:
     static char ID;
@@ -229,8 +231,6 @@ class Infoflow :
     SignatureRegistrar *signatureRegistrar;
 
     FlowRecord currentContextFlowRecord(bool implicit) const;
-
-    void taintStr (std::string kind, std::string match);
 
     const std::set<const AbstractLoc *> &locsForValue(const Value & value) const;
     const std::set<const AbstractLoc *> &reachableLocsForValue(const Value & value) const;

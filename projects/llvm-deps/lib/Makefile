@@ -1,6 +1,6 @@
 LEVEL = ..
 
-DIRS = Constraints PointsToInterface SourceSinkAnalysis Deps
+DIRS = Constraints PointsToInterface SourceSinkAnalysis Deps Security
 
 include $(LEVEL)/Makefile.common
 

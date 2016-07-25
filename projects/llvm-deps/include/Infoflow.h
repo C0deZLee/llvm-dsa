@@ -103,6 +103,7 @@ private:
 };
 
 class TaintAnalysis;
+class VulnerableBranch;
 
 /// A constraint-based, context-sensitive, interprocedural information
 /// flow analysis pass. Exposes information-flow constraints with a
@@ -112,6 +113,7 @@ class Infoflow :
   public CallSensitiveAnalysisPass<Unit,Unit,1,CallerContext> {
   friend class InfoflowSolution;
   friend class TaintAnalysis;
+  friend class VulnerableBranch;
 
   public:
     static char ID;

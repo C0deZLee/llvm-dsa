@@ -69,9 +69,10 @@ public:
     // Compute both least and greatest solutions simultaneously
     // for the given kind.
     void solveMT(std::string kind);
+    
     // Solve the given kinds in parallel (per thread limit)
-  std::vector<PartialSolution*> solveLeastMT(std::vector<std::string> kinds, bool useDefaultSinks);
-  std::vector<LHConstraint> &getOrCreateConstraintSet(const std::string kind);
+    std::vector<PartialSolution*> solveLeastMT(std::vector<std::string> kinds, bool useDefaultSinks);
+    std::vector<LHConstraint> &getOrCreateConstraintSet(const std::string kind);
 
 private:
     static LHConstraintKit *singleton;

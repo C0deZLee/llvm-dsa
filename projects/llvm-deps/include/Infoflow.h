@@ -80,7 +80,7 @@ public:
 
   /// isTainted - returns true if the security level of the value is High.
   bool isTainted(const Value &);
-  void allTainted();
+  std::vector<std::pair<const int , const ConsElem *>>  allTainted();
   /// isDirectPtrTainted - returns true if the security level of the memory
   /// pointed to is High.
   bool isDirectPtrTainted(const Value &);

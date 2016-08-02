@@ -289,6 +289,7 @@ InfoflowSolution::isTainted(const Value & value) {
   DenseMap<const Value *, const ConsElem *>::iterator entry = valueMap.find(&value);
   if (entry != valueMap.end()) {
     const ConsElem & elem = *(entry->second);
+    // here 
     return (soln->subst(elem) == highConstant);
   } else {
     DEBUG(errs() << "not in solution: " << value << "\n");
@@ -318,43 +319,50 @@ const MDLocation* findVar(const Value* V, const Function* F) {
   return NULL;
 }
 
-void getOriginalLocation(const Value* V) {
+int getOriginalLocation(const Value* V) {
   if (const GlobalVariable* glb = dyn_cast<GlobalVariable>(V)) {
     errs() << "Global var: " << glb->getName();
-    return;
+    return 0;
   }
 
   const Function* F = findEnclosingFunc(V);
-  if (!F) {errs() << "Unknown location"; return;}
+  if (!F) {errs() << "Unknown location"; return 0;}
 
   // check function parameters
   for (Function::ArgumentListType::const_iterator ite = F->arg_begin(), end = F->arg_end();
          ite != end; ++ite) {
     if (&*ite == V) {
         errs() << "Function " << F->getName() << " Arg: " << ite->getName();
-        return;
+        return 0;
     }
   }
 
   const MDLocation* Loc = findVar(V, F);
-  if (!Loc) {errs() << "Unknown location"; return;}
+  if (!Loc) {errs() << "Unknown location"; return 0;}
 
   errs() << Loc->getFilename() << " line " << std::to_string(Loc->getLine());
-  return;
+  return Loc->getLine();
 }
 
-void
+std::vector<std::pair<const int , const ConsElem *>> 
 InfoflowSolution::allTainted( ) {
+  //DenseMap<const int *, const ConsElem *> line_elem; //cannot use densemap because the address of int always the same 
+  std::vector<std::pair<const int , const ConsElem *>> line_elem;
   for (DenseMap<const Value *, const ConsElem *>::const_iterator entry = valueMap.begin(), end = valueMap.end();
          entry != end; ++entry) {
     const Value& v = *(entry->first);
     if (isTainted(v)) {
       errs() << "Tainted! ";
       // v.dump();
-      getOriginalLocation(&v);
+      const int line = getOriginalLocation(&v);
+      if(line!=0) { 
+        line_elem.push_back(std::make_pair(line, (*entry).second));
+        //2*(entry->second)->dump(errs());
+      }
       errs() << "\n";
     }
-  }
+  }  
+  return line_elem;
 }
 
 

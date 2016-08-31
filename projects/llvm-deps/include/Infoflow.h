@@ -80,7 +80,7 @@ public:
 
   /// isTainted - returns true if the security level of the value is High.
   bool isTainted(const Value &);
-  std::vector<std::pair<const int , const ConsElem *>>  allTainted();
+  void allTainted();
   /// isDirectPtrTainted - returns true if the security level of the memory
   /// pointed to is High.
   bool isDirectPtrTainted(const Value &);
@@ -118,7 +118,7 @@ class Infoflow :
   public:
     static char ID;
     Infoflow ();
-  virtual ~Infoflow() { delete kit; delete signatureRegistrar; }
+    virtual ~Infoflow() { delete kit; delete signatureRegistrar; }
     const char *getPassName() const { return "Infoflow"; }
     virtual void getAnalysisUsage(AnalysisUsage &AU) const {
       CallSensitiveAnalysisPass<Unit,Unit,1,CallerContext>::getAnalysisUsage(AU);
@@ -143,6 +143,9 @@ class Infoflow :
     }
 
     bool DropAtSinks() const;
+
+    /// Get the line number of value
+    int getOriginalLocation(const Value* V);
 
     /// registerSignatures - Register an information flow signature
     /// to be used when calling external code.

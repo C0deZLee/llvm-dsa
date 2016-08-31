@@ -15,4 +15,13 @@ int main() {
      x = 2;
   if (plain < N)    // this branch is untrusted, but not tainted.
      x = 3;
+  key = 1;
+  plain = key;
+  if (N == 0)
+     x = 5;
+  if (key == plain)
+     x = 4;
+
+  key = 1;
+  plain = 2;
 }

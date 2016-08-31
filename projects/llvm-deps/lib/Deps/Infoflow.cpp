@@ -52,6 +52,70 @@ X ("infoflow", "Compute information flow constraints", true, true);
 static RegisterPass<PDTCache>
 Y ("pdtcache", "Cache PostDom Analysis Results", true, true);
 
+///////////////////////////////////////////////////////////////////////////////
+/// Local Functions
+///////////////////////////////////////////////////////////////////////////////
+
+const Function* 
+findEnclosingFunc(const Value* V) {
+  if (const Argument* Arg = dyn_cast<Argument>(V)) {
+    return Arg->getParent();
+  }
+  if (const Instruction* I = dyn_cast<Instruction>(V)) {
+    return I->getParent()->getParent();
+  }
+  return NULL;
+}
+
+const MDLocation* 
+findVar(const Value* V, const Function* F) {
+  for (const_inst_iterator Iter = inst_begin(F), End = inst_end(F); Iter != End; ++Iter) {
+    const Instruction* I = &*Iter;
+    for (unsigned i=0; i< I->getNumOperands(); i++) {
+      if (V == I->getOperand(i)) {
+        return I->getDebugLoc();
+      }
+    }
+  }
+  return NULL;
+}
+
+int 
+getOriginalLocation(const Value* V) {
+  if (const GlobalVariable* glb = dyn_cast<GlobalVariable>(V)) {
+    errs() << "Global var: " << glb->getName() << "\n";
+    return 0;
+  }
+
+  const Function* F = findEnclosingFunc(V);
+  if (!F) {
+    //errs() << "Unknown location\n"; 
+    return 0;
+  }
+
+  // check function parameters
+  for (Function::ArgumentListType::const_iterator ite = F->arg_begin(), end = F->arg_end();
+         ite != end; ++ite) {
+    if (&*ite == V) {
+        errs() << "Function " << F->getName() << " Arg: " << ite->getName() << "\n";
+        return 0;
+    }
+  }
+
+  const MDLocation* Loc = findVar(V, F);
+  if (!Loc) {
+    //errs() << "Unknown location\n"; 
+    return 0;
+  }
+
+  errs() << Loc->getFilename() << " line " << std::to_string(Loc->getLine()) << "\n";
+  return Loc->getLine();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// Infoflow
+///////////////////////////////////////////////////////////////////////////////
+
 Infoflow::Infoflow () :
     // The parameters to the template are an input and output type for the user's analysis and a non-negative integer k.
     CallSensitiveAnalysisPass<Unit,Unit,1,CallerContext>(ID, DepsCollapseExtContext, DepsCollapseIndContext),
@@ -75,7 +139,8 @@ Infoflow::doFinalization() {
   // for computing propagatesTaint
 }
 
-void Infoflow::registerSignatures() {
+void 
+Infoflow::registerSignatures() {
   RegisterSignature<OverflowChecks> OverflowChecks (*signatureRegistrar);
   RegisterSignature<StdLib>         StdLib(*signatureRegistrar);
 
@@ -276,6 +341,39 @@ Infoflow::signatureForExternalCall(const ImmutableCallSite & cs, const Unit inpu
   return bottomOutput();
 }
 
+int 
+Infoflow::getOriginalLocation(const Value* V) {
+  if (const GlobalVariable* glb = dyn_cast<GlobalVariable>(V)) {
+    errs() << "Global var: " << glb->getName() << "\n";
+    return 0;
+  }
+
+  const Function* F = findEnclosingFunc(V);
+  if (!F) {
+    //errs() << "Unknown location\n"; 
+    return 0;
+  }
+
+  // check function parameters
+  for (Function::ArgumentListType::const_iterator ite = F->arg_begin(), end = F->arg_end();
+         ite != end; ++ite) {
+    if (&*ite == V) {
+        errs() << "Function " << F->getName() << " Arg: " << ite->getName() << "\n";
+        return 0;
+    }
+  }
+
+  const MDLocation* Loc = findVar(V, F);
+  if (!Loc) {
+    //errs() << "Unknown location\n"; 
+    return 0;
+  }
+
+  errs() << Loc->getFilename() << " line " << std::to_string(Loc->getLine()) << "\n";
+  return Loc->getLine();
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 /// InfoflowSolution
 ///////////////////////////////////////////////////////////////////////////////
@@ -289,7 +387,6 @@ InfoflowSolution::isTainted(const Value & value) {
   DenseMap<const Value *, const ConsElem *>::iterator entry = valueMap.find(&value);
   if (entry != valueMap.end()) {
     const ConsElem & elem = *(entry->second);
-    // here 
     return (soln->subst(elem) == highConstant);
   } else {
     DEBUG(errs() << "not in solution: " << value << "\n");
@@ -297,72 +394,24 @@ InfoflowSolution::isTainted(const Value & value) {
   }
 }
 
-const Function* findEnclosingFunc(const Value* V) {
-  if (const Argument* Arg = dyn_cast<Argument>(V)) {
-    return Arg->getParent();
-  }
-  if (const Instruction* I = dyn_cast<Instruction>(V)) {
-    return I->getParent()->getParent();
-  }
-  return NULL;
-}
 
-const MDLocation* findVar(const Value* V, const Function* F) {
-  for (const_inst_iterator Iter = inst_begin(F), End = inst_end(F); Iter != End; ++Iter) {
-    const Instruction* I = &*Iter;
-    for (unsigned i=0; i< I->getNumOperands(); i++) {
-      if (V == I->getOperand(i)) {
-        return I->getDebugLoc();
-      }
-    }
-  }
-  return NULL;
-}
-
-int getOriginalLocation(const Value* V) {
-  if (const GlobalVariable* glb = dyn_cast<GlobalVariable>(V)) {
-    errs() << "Global var: " << glb->getName();
-    return 0;
-  }
-
-  const Function* F = findEnclosingFunc(V);
-  if (!F) {errs() << "Unknown location"; return 0;}
-
-  // check function parameters
-  for (Function::ArgumentListType::const_iterator ite = F->arg_begin(), end = F->arg_end();
-         ite != end; ++ite) {
-    if (&*ite == V) {
-        errs() << "Function " << F->getName() << " Arg: " << ite->getName();
-        return 0;
-    }
-  }
-
-  const MDLocation* Loc = findVar(V, F);
-  if (!Loc) {errs() << "Unknown location"; return 0;}
-
-  errs() << Loc->getFilename() << " line " << std::to_string(Loc->getLine());
-  return Loc->getLine();
-}
-
-std::vector<std::pair<const int , const ConsElem *>> 
-InfoflowSolution::allTainted( ) {
-  //DenseMap<const int *, const ConsElem *> line_elem; //cannot use densemap because the address of int always the same 
-  std::vector<std::pair<const int , const ConsElem *>> line_elem;
+void
+InfoflowSolution::allTainted() {
   for (DenseMap<const Value *, const ConsElem *>::const_iterator entry = valueMap.begin(), end = valueMap.end();
          entry != end; ++entry) {
     const Value& v = *(entry->first);
     if (isTainted(v)) {
-      errs() << "Tainted! ";
-      // v.dump();
-      const int line = getOriginalLocation(&v);
-      if(line!=0) { 
-        line_elem.push_back(std::make_pair(line, (*entry).second));
-        //2*(entry->second)->dump(errs());
+      errs() << "Tainted: \n";
+      v.dump();
+      errs() << "Line num: \n";
+      getOriginalLocation(entry->first);
+      errs() << "Var name: \n";
+      if (v.hasName()){
+        errs() << v.getName() << "\n";
       }
       errs() << "\n";
     }
   }  
-  return line_elem;
 }
 
 

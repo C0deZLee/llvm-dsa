@@ -42,7 +42,7 @@ public:
 private:
   Infoflow *ifa;
 
-  void taintStr (std::string kind, std::string match);
+  std::vector<const Value*>  taintStr (std::string kind, std::string match);
 };
 
 }
